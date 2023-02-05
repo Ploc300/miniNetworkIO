@@ -9,19 +9,32 @@ class FenetrePrincipale(arcade.Window):
     
     def __init__(self):
         super().__init__(1000, 650, "Jeu reseau", fullscreen=False)
+        
+        view_menu = None
+        view_game = None
+        
+        
     
-    def setup(self):
+    def setup(self, view_list:list):
         # Set up the Camera
         self.camera = arcade.Camera(self.width, self.height)
 
         # Initialize Scene
         self.scene = arcade.Scene()
+        
+        self.view_menu, self.view_game = view_list
+    
+    
+    
     
         
 
-class Menu(arcade.View):
+class MenuJeu(arcade.View):
     
-    def on_show(self):
+    
+    def on_show_view(self):
+        arcade.set_viewport(0, self.window.width, 0, self.window.height)
+        
         arcade.set_background_color((0, 0, 0))
         
         self.sprite_routeur = arcade.load_texture("./assets/sprites/routeur/1.png")
@@ -33,6 +46,7 @@ class Menu(arcade.View):
         ]
     
     def on_draw(self):
+        self.clear()
         
         # dessiner les boutons
         for x, y, w, h, color, name, text, text_color in self.buttons:
@@ -50,16 +64,28 @@ class Menu(arcade.View):
             if x_but - (w_but/2) <= x <= x_but + (w_but/2) and y_but - (h_but/2) <= y <= y_but + (h_but/2):
                 if button == 1:
                     print(name)
+                    self.button_press(name)
+    
+    def button_press(self, name:str) -> None:
+        if name == "bouton1":
+            self.window.show_view(self.window.view_game)
+            
+
+
 
 
 class Jeu(arcade.View):
     
-    def on_show(self):
+    def on_show_view(self):
+        arcade.set_viewport(0, self.window.width, 0, self.window.height)
+        
         arcade.set_background_color((0, 0, 0))
         
         self.sprite_routeur = arcade.load_texture("./assets/sprites/routeur/1.png")
     
     def on_draw(self):
+        self.clear()
+        
         arcade.draw_lrwh_rectangle_textured(500, 500, 50, 50, self.sprite_routeur)
     
     def on_update(self, delta_time: float):
@@ -68,8 +94,12 @@ class Jeu(arcade.View):
 
 
 window = FenetrePrincipale()
-menu = Menu()
-game = Jeu()
 
-window.show_view(menu)
+view_menu = MenuJeu(window=window)
+view_game = Jeu(window=window)
+
+window.setup([view_menu, view_game])
+
+window.show_view(view_menu)
+
 arcade.run()
