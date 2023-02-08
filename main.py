@@ -13,6 +13,8 @@ class FenetrePrincipale(arcade.Window):
         
         view_menu = None
         view_game = None
+        view_help = None
+        view_settings = None
         
         
     
@@ -23,7 +25,7 @@ class FenetrePrincipale(arcade.Window):
         # Initialize Scene
         self.scene = arcade.Scene()
         
-        self.view_menu, self.view_game = view_list
+        self.view_menu, self.view_game, self.view_help, self.view_settings = view_list
     
     
     
@@ -42,8 +44,10 @@ class MenuJeu(arcade.View):
         
         # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
         self.buttons = [
-            (500, 500, 200, 50, (255, 0, 0), "bouton1", "Jouer", (0, 0, 0)),
-            (500, 400, 200, 50, (255, 0, 0), "bouton2", "haha2", (0, 0, 0)),
+            (window.width/2, window.height/5*4, 200, 50, (255, 0, 0), "bouton1", "Jouer", (0, 0, 0)),
+            (window.width/2, window.height/5*3, 200, 50, (255, 0, 0), "bouton2", "Comment Jouer?", (0, 0, 0)),
+            (window.width/2, window.height/5*2, 200, 50, (255, 0, 0), "bouton3", "Paramètres", (0, 0, 0)),
+            (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton4", "Quitter", (0, 0, 0))
         ]
     
     def on_draw(self):
@@ -63,15 +67,95 @@ class MenuJeu(arcade.View):
         # verifier si les boutons sont appuyés
         for x_but, y_but, w_but, h_but, _, name, _, _ in self.buttons:
             if x_but - (w_but/2) <= x <= x_but + (w_but/2) and y_but - (h_but/2) <= y <= y_but + (h_but/2):
-                if button == 1:
+                if button:
                     print(name)
                     self.button_press(name)
     
     def button_press(self, name:str) -> None:
-        if name == "bouton1":
-            self.window.show_view(self.window.view_game)
-            
+        match name:
+            case "bouton1":
+                self.window.show_view(self.window.view_game)
+            case "bouton2":
+                self.window.show_view(self.window.view_help)
+            case "bouton3":
+                self.window.show_view(self.window.view_settings)
+            case "bouton4":
+                self.window.close()
 
+class Help(arcade.View):
+    
+    def on_show_view(self):
+        arcade.set_viewport(0, self.window.width, 0, self.window.height)
+        
+        arcade.set_background_color((255, 255, 255))
+        
+        # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
+        self.buttons = [
+            (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0))
+        ]
+
+    def on_draw(self):
+        self.clear()
+
+        # dessiner les boutons
+        for x, y, w, h, color, name, text, text_color in self.buttons:
+            arcade.draw_rectangle_filled(x, y, w, h, color)
+            arcade.draw_text(text, x, y, text_color, anchor_x="center", anchor_y="baseline")
+
+    def on_update(self, delta_time: float):
+        pass
+
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+            
+        # verifier si les boutons sont appuyés
+        for x_but, y_but, w_but, h_but, _, name, _, _ in self.buttons:
+            if x_but - (w_but/2) <= x <= x_but + (w_but/2) and y_but - (h_but/2) <= y <= y_but + (h_but/2):
+                if button:
+                    print(name)
+                    self.button_press(name)
+
+    def button_press(self, name:str) -> None:
+        match name:
+            case "bouton1":
+                self.window.show_view(self.window.view_menu)
+
+
+class Settings(arcade.View):
+
+    def on_show_view(self):
+        arcade.set_viewport(0, self.window.width, 0, self.window.height)
+        
+        arcade.set_background_color((255, 255, 255))
+        
+        # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
+        self.buttons = [
+            (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0))
+        ]
+
+    def on_draw(self):
+        self.clear()
+
+        # dessiner les boutons
+        for x, y, w, h, color, name, text, text_color in self.buttons:
+            arcade.draw_rectangle_filled(x, y, w, h, color)
+            arcade.draw_text(text, x, y, text_color, anchor_x="center", anchor_y="baseline")
+
+    def on_update(self, delta_time: float):
+        pass
+
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+            
+        # verifier si les boutons sont appuyés
+        for x_but, y_but, w_but, h_but, _, name, _, _ in self.buttons:
+            if x_but - (w_but/2) <= x <= x_but + (w_but/2) and y_but - (h_but/2) <= y <= y_but + (h_but/2):
+                if button:
+                    print(name)
+                    self.button_press(name)
+
+    def button_press(self, name:str) -> None:
+        match name:
+            case "bouton1":
+                self.window.show_view(self.window.view_menu)
 
 
 
@@ -108,8 +192,10 @@ window = FenetrePrincipale()
 
 view_menu = MenuJeu(window=window)
 view_game = Jeu(window=window)
+view_help = Help(window=window)
+view_settings = Settings(window=window)
 
-window.setup([view_menu, view_game])
+window.setup([view_menu, view_game, view_help, view_settings])
 
 window.show_view(view_menu)
 
