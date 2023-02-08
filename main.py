@@ -11,8 +11,8 @@ class FenetrePrincipale(arcade.Window):
     def __init__(self):
         super().__init__(1000, 650, "Jeu reseau", fullscreen=False)
         
-        view_menu = None
-        view_game = None
+        self.view_menu = None
+        self.view_game = None
         
         
     
@@ -37,8 +37,6 @@ class MenuJeu(arcade.View):
         arcade.set_viewport(0, self.window.width, 0, self.window.height)
         
         arcade.set_background_color((255, 255, 255))
-        
-        self.sprite_routeur = arcade.load_texture("./assets/sprites/routeur/1.png")
         
         # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
         self.buttons = [
@@ -82,10 +80,8 @@ class Jeu(arcade.View):
         
         arcade.set_background_color((255, 255, 255))
         
-        self.sprite_routeur = arcade.load_texture("./assets/sprites/routeur/1.png")
-        
         # x, y, w, h, nom, niveau
-        self.routeurs = [(500, 500, 50, 50, "coeur de reseau", 1)]
+        self.routeurs = [Routeur(500, 500, 50, 50, "coeur de reseau", 1)]
         
         #self.switch
         
