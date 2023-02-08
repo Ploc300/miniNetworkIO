@@ -1,4 +1,5 @@
 import arcade
+from sprites import Interface, Routeur, Switch
 
 # créer un menu aussi
 
@@ -35,14 +36,14 @@ class MenuJeu(arcade.View):
     def on_show_view(self):
         arcade.set_viewport(0, self.window.width, 0, self.window.height)
         
-        arcade.set_background_color((0, 0, 0))
+        arcade.set_background_color((255, 255, 255))
         
         self.sprite_routeur = arcade.load_texture("./assets/sprites/routeur/1.png")
         
         # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
         self.buttons = [
-            (500, 500, 200, 50, (255, 255, 255), "bouton1", "haha", (0, 0, 0)),
-            (500, 400, 200, 50, (255, 255, 255), "bouton2", "haha2", (0, 0, 0)),
+            (500, 500, 200, 50, (255, 0, 0), "bouton1", "Jouer", (0, 0, 0)),
+            (500, 400, 200, 50, (255, 0, 0), "bouton2", "haha2", (0, 0, 0)),
         ]
     
     def on_draw(self):
@@ -79,9 +80,17 @@ class Jeu(arcade.View):
     def on_show_view(self):
         arcade.set_viewport(0, self.window.width, 0, self.window.height)
         
-        arcade.set_background_color((0, 0, 0))
+        arcade.set_background_color((255, 255, 255))
         
         self.sprite_routeur = arcade.load_texture("./assets/sprites/routeur/1.png")
+        
+        # x, y, w, h, nom, niveau
+        self.routeurs = [(500, 500, 50, 50, "coeur de reseau", 1)]
+        
+        #self.switch
+        
+        # nom machine 1, nom machine 2, type(0 = droit ou 1=croisé) ? , niveau
+        self.cables = []
     
     def on_draw(self):
         self.clear()
@@ -90,6 +99,8 @@ class Jeu(arcade.View):
     
     def on_update(self, delta_time: float):
         pass
+    
+
 
 
 

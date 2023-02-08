@@ -1,0 +1,30 @@
+{
+    "conf" : {
+        "routeur" : {
+            "nv1" : {
+                "interfaces" : 3,
+                "packet_par_s" : 1
+            },
+            "nv2" : {
+                "interfaces" : 3,
+                "packet_par_s" : 2
+            },
+            "nv3" : {
+                "interfaces" : 4,
+                "packet_par_s" : 3
+            }
+        },
+
+        "cable" : {
+            "nv1" : {
+                "packet_par_s" : 1
+            },
+            "nv2" : {
+                "packet_par_s" : 2
+            },
+            "nv3" : {
+                "packet_par_s" : 3
+            }
+        }
+    }
+}
