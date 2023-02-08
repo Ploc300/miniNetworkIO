@@ -60,8 +60,6 @@ class Routeur(arcade.Sprite):
         # créer les interfaces
         self.interfaces = self.gen_interfaces()
         
-        self.sprites = [arcade.load_texture("./assets/sprites/routeur/1.png")]
-        self.sprite_actuel = 0
     
     def gen_interfaces(self) -> list:
         """Calcul l'endroit ou doivent se trouver les interfaces"""
@@ -80,15 +78,6 @@ class Routeur(arcade.Sprite):
             interfaces.append(Interface(self.center_x + (self.width/2), self.center_y, "eth3"))
         
         return interfaces
-
-    def update_animation(self):
-        
-        self.sprite_actuel += 1
-        
-        if self.sprite_actuel >= len(self.sprites):
-            self.sprite_actuel = 0
-        
-        return self.sprites[self.sprite_actuel]
             
     
     def level_up(self, n=1):
