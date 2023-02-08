@@ -80,21 +80,54 @@ class Jeu(arcade.View):
         
         arcade.set_background_color((255, 255, 255))
         
+        # cooldown entre chaque anim
+        self.animation_cooldown = 30
+        
         # x, y, w, h, nom, niveau
         self.routeurs = [Routeur(500, 500, 50, 50, "coeur de reseau", 1)]
+        
         
         #self.switch
         
         # nom machine 1, nom machine 2, type(0 = droit ou 1=croisé) ? , niveau
         self.cables = []
+        
+        # lance le render des sprites
+        self.ajouter_sprites()
     
     def on_draw(self):
-        self.clear()
         
-        arcade.draw_lrwh_rectangle_textured(500, 500, 50, 50, self.sprite_routeur)
+        # dessiner le stage
+        self.clear()
+        self.window.camera.use()
+        self.window.scene.draw()
+        
+        # update les sprites
+        self.animation_cooldown -= 1
+        if self.animation_cooldown <= 0:
+            self.update_sprites()
+            self.animation_cooldown = 30
+        
+        
     
     def on_update(self, delta_time: float):
         pass
+    
+    def ajouter_sprites(self):
+        """Fonction qui va ajouter a la scene tout les sprites qui n'y sont pas encore"""
+        
+        for routeur in self.routeurs:
+            if not routeur.in_game:
+                routeur.in_game = True
+                self.window.scene.add_sprite(routeur.nom, routeur)
+    
+    
+    def update_sprites(self):
+        """Fonction qui fait avancer les animations de tout les sprites"""
+        
+        for routeur in self.routeurs:
+            routeur.animer()
+        
     
 
 
