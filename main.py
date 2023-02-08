@@ -1,10 +1,13 @@
 import arcade
-from sprites import Interface, Routeur, Switch
 
 # créer un menu aussi
 
 import os
 os.chdir(os.path.dirname(__file__))
+
+
+# import après le changement de place (pour pas faire planter le texure loader)
+from sprites import Interface, Routeur, Switch
 
 class FenetrePrincipale(arcade.Window):
     
@@ -84,7 +87,9 @@ class Jeu(arcade.View):
         self.animation_cooldown = 30
         
         # x, y, w, h, nom, niveau
-        self.routeurs = [Routeur(500, 500, 50, 50, "coeur de reseau", 1)]
+        self.routeurs = [Routeur(500, 500, 50, 50, "coeur de reseau", 1),
+                        Routeur(200, 200, 50, 50, "coeur de reseau", 1)
+                        ]
         
         
         #self.switch

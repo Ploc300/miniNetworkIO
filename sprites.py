@@ -1,5 +1,6 @@
 import arcade
 import json
+import os
 
 with open("./conf.json", 'r') as f:
     
@@ -8,6 +9,13 @@ with open("./conf.json", 'r') as f:
     
     STAT_CABLE = content["conf"]["cable"]
 
+
+# chargement des sprites (pour les charger qu'une fois)
+TEXTURES_SPRITES = {}
+for type_texture in os.listdir("./assets/sprites/"):
+    TEXTURES_SPRITES[type_texture] = []
+    for texture in os.listdir(f"./assets/sprites/{type_texture}/"):
+        TEXTURES_SPRITES[type_texture].append(arcade.load_texture(f"./assets/sprites/{type_texture}/{texture}"))
 
 
 class Interface:
@@ -46,7 +54,7 @@ class Routeur(arcade.Sprite):
         
         # récupérer les textures (faire une fonction plus tard)
         self.texture_actuel = 0
-        self.textures_sprite = [arcade.load_texture("./assets/sprites/routeur/1.png"), arcade.load_texture("./assets/sprites/routeur/2.png")]
+        self.textures_sprite = TEXTURES_SPRITES["routeur"]
         self.texture = self.textures_sprite[self.texture_actuel]
                 
         # créer les interfaces
