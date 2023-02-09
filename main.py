@@ -166,6 +166,9 @@ class Jeu(arcade.View):
         
         arcade.set_background_color((255, 255, 255))
         
+        # machine qui est atuelement selectionné
+        self.actuelement_selectionne = None
+        
         # cooldown entre chaque anim
         self.animation_cooldown = 30
         
@@ -191,6 +194,25 @@ class Jeu(arcade.View):
         self.window.camera.use()
         self.window.scene.draw()
         
+        # dessiner le carré de paramètres
+        arcade.draw_lrtb_rectangle_filled(self.window.width*2/3, self.window.width, self.window.height, 0, (223, 223, 222))
+        
+        # dessiner le contenu du carré de paramètres
+        if self.actuelement_selectionne is not None:
+            arcade.draw_text(f"Nom : {self.actuelement_selectionne.nom}", self.window.width*5/6,
+                            self.window.height*19/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            arcade.draw_text(f"Niveau : {self.actuelement_selectionne.niveau}", self.window.width*5/6,
+                            self.window.height*18/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            arcade.draw_text(f"Nombre d'interfaces : {self.actuelement_selectionne.stats_actuel['interfaces']}", self.window.width*5/6,
+                            self.window.height*17/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            arcade.draw_text(f"Vitesse : {self.actuelement_selectionne.stats_actuel['packet_par_s']}", self.window.width*5/6,
+                            self.window.height*16/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+        
+        # dessin carré console
+        if self.actuelement_selectionne is not None:
+            arcade.draw_lrtb_rectangle_filled(self.window.width*2/3, self.window.width, self.window.height/2, 0, (0, 0, 0))
+            
+        
         # update les sprites
         self.animation_cooldown -= 1
         if self.animation_cooldown <= 0:
@@ -203,6 +225,15 @@ class Jeu(arcade.View):
         # dessiner les cables
         for cable in self.cables:
             cable.dessiner()
+            
+        
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        
+        # gérer si un routeur est cliqué
+        
+        for routeur in self.routeurs:
+            if routeur.collides_with_point((x, y)):
+                self.actuelement_selectionne = routeur
         
         
     
