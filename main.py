@@ -1,4 +1,5 @@
 import arcade
+import arcade.gui
 
 # créer un menu aussi
 
@@ -169,6 +170,12 @@ class Jeu(arcade.View):
         # machine qui est atuelement selectionné
         self.actuelement_selectionne = None
         
+        # actuelement dans la console
+        self.console_active = False
+        self.text_console = ""
+        self.command_history = []
+        self.index_historique = None
+        
         # cooldown entre chaque anim
         self.animation_cooldown = 30
         
@@ -212,6 +219,22 @@ class Jeu(arcade.View):
         if self.actuelement_selectionne is not None:
             arcade.draw_lrtb_rectangle_filled(self.window.width*2/3, self.window.width, self.window.height/2, 0, (0, 0, 0))
             
+            commandes = self.actuelement_selectionne.get_output_lines(13, 50)
+            
+            i = 0
+            j = 0
+            while i+j < 13 and i < len(commandes):
+                
+                text = commandes[i]
+                
+                arcade.draw_text(text, self.window.width*2/3,
+                        self.window.height/2 - 30 - (20*(i+j)), (255, 255, 255), multiline=True, width=self.window.width/3)
+                
+                i += 1
+                j += len(text)//50
+                
+            arcade.draw_text(f"{self.actuelement_selectionne.nom}#{self.text_console}", self.window.width*2/3,
+                            self.window.height/2 - 30 - (20 * (i+j)), (255, 255, 255))
         
         # update les sprites
         self.animation_cooldown -= 1
@@ -229,11 +252,63 @@ class Jeu(arcade.View):
         
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         
-        # gérer si un routeur est cliqué
+        # gérer si la console est cliqué
+        if self.window.width*2/3 < x < self.window.width and self.window.height/2 > y > 0 and self.actuelement_selectionne is not None:
+            self.console_active = True
+        else:
+            self.console_active = False
+            # gérer si un routeur est cliqué
+            for routeur in self.routeurs:
+                if routeur.collides_with_point((x, y)):
+                    self.actuelement_selectionne = routeur
+                
+    
+    def on_key_press(self, symbol: int, modifiers: int):
         
-        for routeur in self.routeurs:
-            if routeur.collides_with_point((x, y)):
-                self.actuelement_selectionne = routeur
+        # quand une touche est appuyé en console
+        
+        if self.console_active:
+            if chr(symbol) in "abcdefghijklmnopqrstuvwxyz ":
+                self.text_console += chr(symbol)
+            
+            elif arcade.key.ENTER == symbol:
+                self.command_history.append(self.text_console)
+                self.actuelement_selectionne.executer(self.text_console)
+                
+                self.text_console = ""
+            
+            elif arcade.key.UP == symbol:
+                
+                if len(self.command_history) > 0:
+                    # si debut de chargement de l'historique
+                    if self.index_historique is None:
+                        self.index_historique = len(self.command_history) - 1
+                    else:
+                        # si au bout de l'historique
+                        if self.index_historique <= 0:
+                            self.index_historique = len(self.command_history) - 1
+                        else:
+                            self.index_historique -= 1
+                            
+                    self.text_console = self.command_history[self.index_historique]
+                
+            elif arcade.key.DOWN == symbol:
+                if len(self.command_history) > 0:
+                    # si debut de chargement de l'historique
+                    if self.index_historique is None:
+                        self.index_historique = 0
+                    else:
+                        # si au bout de l'historique
+                        if self.index_historique >= len(self.command_history) - 1 :
+                            self.index_historique = 0
+                        else:
+                            self.index_historique += 1
+                            
+                    self.text_console = self.command_history[self.index_historique]
+            
+            elif arcade.key.BACKSPACE == symbol:
+                self.text_console = self.text_console[:-1]
+                self.index_historique = None
         
         
     

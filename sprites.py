@@ -60,6 +60,9 @@ class Routeur(arcade.Sprite):
         # créer les interfaces
         self.interfaces = self.gen_interfaces()
         
+        # contenu console
+        self.contenu_console = [f"Bienvenu dans la console de la machine {self.nom}"]
+        
     
     def gen_interfaces(self) -> list:
         """Calcul l'endroit ou doivent se trouver les interfaces"""
@@ -100,6 +103,31 @@ class Routeur(arcade.Sprite):
         for interface in self.interfaces:
             if nom == interface.get_name():
                 return interface
+    
+    def executer(self, commande):
+        self.contenu_console.append(f"{self.nom}#{commande}")
+        
+        # interprétation
+        
+        self.contenu_console.append("interpretation pas encore activé")
+    
+    def get_output_lines(self, nb:int, car_par_ligne:int, nb_start=-1):
+        """Renvoi les nb ligne aec un maximum de nb_char_par_ligne
+        sur chaque ligne, par défaut le fetch commence par la fin"""
+        liste_fin = []
+        
+        i = 0
+        nb_lignes = 0
+        while nb_lignes < nb and i < len(self.contenu_console):
+            
+            nb_lignes += 1 + len(self.contenu_console[nb_start - i])//car_par_ligne
+            
+            if nb_lignes <= nb:
+                liste_fin.append(self.contenu_console[nb_start - i])
+            
+            i += 1
+        
+        return liste_fin[::-1]
         
 
 class Cable:
