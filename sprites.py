@@ -94,22 +94,29 @@ class Routeur(arcade.Sprite):
             self.texture_actuel = 0
         
         self.texture = self.textures_sprite[self.texture_actuel]
+    
+    def get_interface(self, nom):
+        
+        for interface in self.interfaces:
+            if nom == interface.get_name():
+                return interface
         
 
-class Cables(arcade.Sprite):
+class Cable:
     
     def __init__(self, interface1:Interface, interface2:Interface, niveau) -> None:
-        super().__init__()
+        
         
         self.niveau = niveau
         self.interface1 = interface1
         self.interface2 = interface2
         
-        # si le sprite a deja ete ajouté a la game
-        self.in_game = False
-        
         self.stats = STAT_CABLE
         self.stats_actuel = STAT_CABLE[f"nv{self.niveau}"]
+    
+    def dessiner(self):
+        arcade.draw_line(self.interface1.center_x, self.interface1.center_y,
+                        self.interface2.center_x, self.interface2.center_y, (0, 0, 0))
     
 
 

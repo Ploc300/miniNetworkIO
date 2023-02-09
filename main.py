@@ -7,7 +7,7 @@ os.chdir(os.path.dirname(__file__))
 
 
 # import après le changement de place (pour pas faire planter le texure loader)
-from sprites import Interface, Routeur, Switch
+from sprites import Interface, Routeur, Switch, Cable
 
 class FenetrePrincipale(arcade.Window):
     
@@ -171,14 +171,15 @@ class Jeu(arcade.View):
         
         # x, y, w, h, nom, niveau
         self.routeurs = [Routeur(500, 500, 50, 50, "coeur de reseau", 1),
-                        Routeur(200, 200, 50, 50, "coeur de reseau", 1)
+                        Routeur(200, 200, 50, 50, "R1", 1)
                         ]
         
         
         #self.switch
+        self.switchs = []
         
         # nom machine 1, nom machine 2, type(0 = droit ou 1=croisé) ? , niveau
-        self.cables = []
+        self.cables = [Cable(self.routeurs[0].get_interface("eth0"), self.routeurs[1].get_interface("eth0"), 1)]
         
         # lance le render des sprites
         self.ajouter_sprites()
@@ -195,6 +196,13 @@ class Jeu(arcade.View):
         if self.animation_cooldown <= 0:
             self.update_sprites()
             self.animation_cooldown = 30
+            
+        # dessiner les noms
+        self.dessiner_noms()
+        
+        # dessiner les cables
+        for cable in self.cables:
+            cable.dessiner()
         
         
     
@@ -213,8 +221,17 @@ class Jeu(arcade.View):
     def update_sprites(self):
         """Fonction qui fait avancer les animations de tout les sprites"""
         
+        # update les sprites
         for routeur in self.routeurs:
             routeur.animer()
+    
+    
+    def dessiner_noms(self):
+        
+        for routeur in self.routeurs:
+            arcade.draw_text(routeur.nom, routeur.center_x, routeur.center_y + routeur.height/2 + 10, 
+                            (255, 0, 0), anchor_x="center", anchor_y="baseline")
+            
         
     
 
