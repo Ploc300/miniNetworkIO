@@ -334,6 +334,7 @@ class Jeu(arcade.View):
                 self.actuelement_selectionne.executer(self.text_console)
                 
                 self.text_console = ""
+                self.index_historique = None
             
             elif arcade.key.UP == symbol:
                 
