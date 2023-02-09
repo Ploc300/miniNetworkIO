@@ -46,6 +46,7 @@ class MenuJeu(arcade.View):
             (window.width/2, window.height/5*2, 200, 50, (255, 0, 0), "bouton3", "Paramètres", (0, 0, 0)),
             (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton4", "Quitter", (0, 0, 0))
         ]
+
     
     def on_draw(self):
         self.clear()
@@ -54,6 +55,8 @@ class MenuJeu(arcade.View):
         for x, y, w, h, color, name, text, text_color in self.buttons:
             arcade.draw_rectangle_filled(x, y, w, h, color)
             arcade.draw_text(text, x, y, text_color, anchor_x="center", anchor_y="baseline")
+
+
             
     
     def on_update(self, delta_time: float):
@@ -88,7 +91,15 @@ class Help(arcade.View):
         
         # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
         self.buttons = [
-            (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0))
+            (window.width/2, window.height/8  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0))
+        ]
+
+        
+        self.textes = [
+            (window.width/4,   window.height/5*4, window.width/2.5, window.height/4, "Zone 1", (0, 0, 0), 20, "center", "baseline"),
+            (window.width/4*3, window.height/5*4, window.width/2.5, window.height/4, "Zone 2", (0, 0, 0), 20, "center", "baseline"),
+            (window.width/4,   window.height/5*2, window.width/2.5, window.height/4, "Zone 3", (0, 0, 0), 20, "center", "baseline"),
+            (window.width/4*3, window.height/5*2, window.width/2.5, window.height/4, "Zone 4", (0, 0, 0), 20, "center", "baseline"),
         ]
 
     def on_draw(self):
@@ -98,6 +109,11 @@ class Help(arcade.View):
         for x, y, w, h, color, name, text, text_color in self.buttons:
             arcade.draw_rectangle_filled(x, y, w, h, color)
             arcade.draw_text(text, x, y, text_color, anchor_x="center", anchor_y="baseline")
+
+        # dessiner les textes
+        for x, y, w, h, text, text_color, size, anchor_x, anchor_y in self.textes:
+            arcade.draw_rectangle_filled(x, y, w, h, color)
+            arcade.draw_text(text, x, y, text_color, size, anchor_x=anchor_x, anchor_y=anchor_y)
 
     def on_update(self, delta_time: float):
         pass
