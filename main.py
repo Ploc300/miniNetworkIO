@@ -175,6 +175,8 @@ class Jeu(arcade.View):
         self.text_console = ""
         self.command_history = []
         self.index_historique = None
+        self.maj_appuye = False
+        self.ctrl_appuye = False
         
         # cooldown entre chaque anim
         self.animation_cooldown = 30
@@ -268,8 +270,64 @@ class Jeu(arcade.View):
         # quand une touche est appuyé en console
         
         if self.console_active:
-            if chr(symbol) in "abcdefghijklmnopqrstuvwxyz ":
-                self.text_console += chr(symbol)
+            if chr(symbol) in "abcdefghijklmnopqrstuvwxyz )":
+                if not self.maj_appuye:
+                    self.text_console += chr(symbol)
+                else:
+                    self.text_console += chr(symbol).upper()
+            
+            if chr(symbol) in ",;:!=":
+                if not self.maj_appuye:
+                    self.text_console += chr(symbol)
+                else:
+                    char = ""
+                    if chr(symbol) == ",":
+                        char = "?"
+                    elif chr(symbol) == ";":
+                        char = "."
+                    elif chr(symbol) == ":":
+                        char = "/"
+                    elif chr(symbol) == "!":
+                        char = "§"
+                    elif chr(symbol) == "=":
+                        char = "+"
+                        
+                    self.text_console += char
+            
+            
+            elif chr(symbol) in "1234567890":
+                if self.maj_appuye:
+                    self.text_console += chr(symbol)
+                else:
+                    char = ""
+                    if chr(symbol) == "1":
+                        char = "&"
+                    elif chr(symbol) == "2":
+                        char = "é"
+                    elif chr(symbol) == "3":
+                        char = "\""
+                    elif chr(symbol) == "4":
+                        char = "\'"
+                    elif chr(symbol) == "5":
+                        char = "("
+                    elif chr(symbol) == "6":
+                        char = "-"
+                    elif chr(symbol) == "7":
+                        char = "è"
+                    elif chr(symbol) == "8":
+                        char = "_"
+                    elif chr(symbol) == "9":
+                        char = "ç"
+                    elif chr(symbol) == "0":
+                        char = "à"
+                    self.text_console += char
+                        
+            
+            elif arcade.key.LSHIFT == symbol or arcade.key.RSHIFT == symbol:
+                self.maj_appuye = True
+            
+            elif arcade.key.LCTRL == symbol or arcade.key.RCTRL == symbol:
+                self.ctrl_appuye = True
             
             elif arcade.key.ENTER == symbol:
                 self.command_history.append(self.text_console)
@@ -310,6 +368,13 @@ class Jeu(arcade.View):
                 self.text_console = self.text_console[:-1]
                 self.index_historique = None
         
+    def on_key_release(self, symbol: int, modifiers: int):
+        if self.console_active:
+            if arcade.key.LSHIFT == symbol or arcade.key.RSHIFT == symbol:
+                self.maj_appuye = False
+            
+            elif arcade.key.LCTRL == symbol or arcade.key.RCTRL == symbol:
+                self.ctrl_appuye = False
         
     
     def on_update(self, delta_time: float):
