@@ -216,6 +216,11 @@ class Jeu(arcade.View):
                             self.window.height*17/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
             arcade.draw_text(f"Vitesse : {self.actuelement_selectionne.stats_actuel['packet_par_s']}", self.window.width*5/6,
                             self.window.height*16/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            
+            for i in range(len(self.actuelement_selectionne.interfaces)):
+                text = f"Ip {self.actuelement_selectionne.interfaces[i].get_name()} : {self.actuelement_selectionne.interfaces[i].get_ip()}/{self.actuelement_selectionne.interfaces[i].get_masque()}"
+                arcade.draw_text(text, self.window.width*5/6,
+                            self.window.height*15/20 - self.window.height*i/20 , (0, 0, 0), anchor_x="center", anchor_y="baseline")
         
         # dessin carré console
         if self.actuelement_selectionne is not None:
@@ -233,10 +238,10 @@ class Jeu(arcade.View):
                         self.window.height/2 - 30 - (20*(i+j)), (255, 255, 255), multiline=True, width=self.window.width/3)
                 
                 i += 1
-                j += len(text)//50
+                j += len(text)//48
                 
-            arcade.draw_text(f"{self.actuelement_selectionne.nom}#{self.text_console}", self.window.width*2/3,
-                            self.window.height/2 - 30 - (20 * (i+j)), (255, 255, 255))
+            arcade.draw_text(f"{self.actuelement_selectionne.get_prompt()}{self.text_console}", self.window.width*2/3,
+                            self.window.height/2 - 30 - (20 * (i+j)), (255, 255, 255), multiline=True, width=self.window.width/3)
         
         # update les sprites
         self.animation_cooldown -= 1

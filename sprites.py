@@ -20,16 +20,28 @@ for type_texture in os.listdir("./assets/sprites/"):
 
 class Interface:
     
-    def __init__(self, x:int, y:int, nom:str) -> None:
+    def __init__(self, x:int, y:int, nom:str, ip=None, masque=None) -> None:
         self.center_x = x
         self.center_y = y
         self.nom = nom
+        self.ip = ip
+        self.masque = masque
     
     def get_name(self):
         return self.nom
     
     def get_coords(self):
         return (self.center_x, self.center_y)
+
+    def get_ip(self):
+        return self.ip
+    
+    def set_ip(self, ip:str, masque:str):
+        self.ip = ip
+        self.masque = masque
+    
+    def get_masque(self):
+        return self.masque
 
 
 
@@ -62,6 +74,15 @@ class Routeur(arcade.Sprite):
         
         # contenu console
         self.contenu_console = [f"Bienvenu dans la console de la machine {self.nom}"]
+        
+        # si on est en mode config
+        self.config = False
+        
+        # l'interface actuel dans la console
+        self.interfaces_actuel = None
+        
+        # table de routage
+        self.table_routage = []
         
     
     def gen_interfaces(self) -> list:
@@ -104,12 +125,112 @@ class Routeur(arcade.Sprite):
             if nom == interface.get_name():
                 return interface
     
+    def get_prompt(self):
+        mode = ""
+        if self.config:
+            if self.interfaces_actuel is not None:
+                mode = "(config-if)"
+            else:
+                mode = "(config)"
+        
+        return f"{self.nom}{mode}#"
+    
     def executer(self, commande):
-        self.contenu_console.append(f"{self.nom}#{commande}")
+        self.contenu_console.append(self.get_prompt()+commande)
         
         # interprétation
+        contenu_commande = commande.split(" ")
+        if len(contenu_commande) > 0:
+            # si on entre en mode config
+            if contenu_commande[0].startswith("conf"):
+                
+                if len(contenu_commande) > 1:
+                    if contenu_commande[1].startswith("t"):
+                        self.config = True
+                    else:
+                        self.contenu_console.append("Argument non valide")
+                else:
+                    self.contenu_console.append("Il manque un argument")
+            
+            # si commande int
+            elif contenu_commande[0].startswith("int"):
+                if len(contenu_commande) > 1:
+                    if self.config:
+                        interface = self.get_interface(contenu_commande[1])
+                        if interface is not None:
+                            self.interfaces_actuel = interface
+                        else:
+                            self.contenu_console.append("L'interface n'est pas valide")
+                    else:
+                        self.contenu_console.append("Vous devez etre en mode config")
+                else:   
+                    self.contenu_console.append("Nom de l'interface manquante")
+            
+            # si commande exit
+            elif contenu_commande[0].startswith("exit"):
+                if self.interfaces_actuel is not None:
+                    self.interfaces_actuel = None
+                else:
+                    self.config = False
+            
+            # si commande ip
+            elif contenu_commande[0].startswith("ip"):
+                if len(contenu_commande) > 1:
+                    if self.config:
+                        # si commande ip addr
+                        if contenu_commande[1].startswith("addr"):
+                            if self.interfaces_actuel is not None:
+                                if len(contenu_commande) == 4:
+                                    # faire une verif de validité
+                                    ip_valide = True
+                                    masque_valide = True
+                                    # verifier l'ip
+                                    if len(contenu_commande[2].split(".")) == 4:
+                                        for p in contenu_commande[2].split("."):
+                                            if not 0 <= int(p) <= 255:
+                                                ip_valide = False
+                                    else:
+                                        ip_valide = False
+                                        self.contenu_console.append("L'ip n'est pas valide, exemple d'ip : 10.0.0.1")
+                                        
+                                    
+                                    if ip_valide:
+                                        # verifier le massque    
+                                        if len(contenu_commande[3].split(".")) == 4:
+                                            for p in contenu_commande[2].split("."):
+                                                if not 0 <= int(p) <= 255:
+                                                    masque_valide = False
+                                        else:
+                                            masque_valide = False
+                                            self.contenu_console.append("Le masque n'est pas valide, exemple d'ip : 255.0.0.0")
+                                    else:
+                                        self.contenu_console.append("Les nombres de l'ip doivent etre compris entre 0 et 255")
+                                    
+                                    if not masque_valide:
+                                        self.contenu_console.append("Les nombres du masque doivent etre compris entre 0 et 255")
+                                    
+                                    # si les 2 sont valides
+                                    if masque_valide and ip_valide:
+                                        self.interfaces_actuel.set_ip(contenu_commande[2], contenu_commande[3])
+                                        
+                                    
+                                else:
+                                    self.contenu_console.append("Il faut préciser l'ip et le masque")
+                            else:
+                                self.contenu_console.append("Aucune interface n'es selectionné")
+                        else:
+                            self.contenu_console.append("Argument invalide")
+                    else:
+                        self.contenu_console.append("Il faut etre en mode config")
+                else:
+                    self.contenu_console.append("Il n'y a pas assez d'argument")
+            
+            # si la commande n'est pas comprise
+            else:
+                self.contenu_console.append("La commande n'a pas été comprise")
+                
         
-        self.contenu_console.append("interpretation pas encore activé")
+        
     
     def get_output_lines(self, nb:int, car_par_ligne:int, nb_start=-1):
         """Renvoi les nb ligne aec un maximum de nb_char_par_ligne
