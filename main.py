@@ -1,4 +1,5 @@
 import arcade
+import arcade.gui
 
 # créer un menu aussi
 
@@ -7,7 +8,7 @@ os.chdir(os.path.dirname(__file__))
 
 
 # import après le changement de place (pour pas faire planter le texure loader)
-from sprites import Interface, Routeur, Switch
+from sprites import Interface, Routeur, Switch, Cable
 
 class FenetrePrincipale(arcade.Window):
     
@@ -166,19 +167,31 @@ class Jeu(arcade.View):
         
         arcade.set_background_color((255, 255, 255))
         
+        # machine qui est atuelement selectionné
+        self.actuelement_selectionne = None
+        
+        # actuelement dans la console
+        self.console_active = False
+        self.text_console = ""
+        self.command_history = []
+        self.index_historique = None
+        self.maj_appuye = False
+        self.ctrl_appuye = False
+        
         # cooldown entre chaque anim
         self.animation_cooldown = 30
         
         # x, y, w, h, nom, niveau
         self.routeurs = [Routeur(500, 500, 50, 50, "coeur de reseau", 1),
-                        Routeur(200, 200, 50, 50, "coeur de reseau", 1)
+                        Routeur(200, 200, 50, 50, "R1", 1)
                         ]
         
         
         #self.switch
+        self.switchs = []
         
         # nom machine 1, nom machine 2, type(0 = droit ou 1=croisé) ? , niveau
-        self.cables = []
+        self.cables = [Cable(self.routeurs[0].get_interface("eth0"), self.routeurs[1].get_interface("eth0"), 1)]
         
         # lance le render des sprites
         self.ajouter_sprites()
@@ -190,12 +203,184 @@ class Jeu(arcade.View):
         self.window.camera.use()
         self.window.scene.draw()
         
+        # dessiner le carré de paramètres
+        arcade.draw_lrtb_rectangle_filled(self.window.width*2/3, self.window.width, self.window.height, 0, (223, 223, 222))
+        
+        # dessiner le contenu du carré de paramètres
+        if self.actuelement_selectionne is not None:
+            arcade.draw_text(f"Nom : {self.actuelement_selectionne.nom}", self.window.width*5/6,
+                            self.window.height*19/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            arcade.draw_text(f"Niveau : {self.actuelement_selectionne.niveau}", self.window.width*5/6,
+                            self.window.height*18/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            arcade.draw_text(f"Nombre d'interfaces : {self.actuelement_selectionne.stats_actuel['interfaces']}", self.window.width*5/6,
+                            self.window.height*17/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            arcade.draw_text(f"Vitesse : {self.actuelement_selectionne.stats_actuel['packet_par_s']}", self.window.width*5/6,
+                            self.window.height*16/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            
+            for i in range(len(self.actuelement_selectionne.interfaces)):
+                text = f"Ip {self.actuelement_selectionne.interfaces[i].get_name()} : {self.actuelement_selectionne.interfaces[i].get_ip()}/{self.actuelement_selectionne.interfaces[i].get_masque()}"
+                arcade.draw_text(text, self.window.width*5/6,
+                            self.window.height*15/20 - self.window.height*i/20 , (0, 0, 0), anchor_x="center", anchor_y="baseline")
+        
+        # dessin carré console
+        if self.actuelement_selectionne is not None:
+            arcade.draw_lrtb_rectangle_filled(self.window.width*2/3, self.window.width, self.window.height/2, 0, (0, 0, 0))
+            
+            commandes = self.actuelement_selectionne.get_output_lines(13, 50)
+            
+            i = 0
+            j = 0
+            while i+j < 13 and i < len(commandes):
+                
+                text = commandes[i]
+                
+                arcade.draw_text(text, self.window.width*2/3,
+                        self.window.height/2 - 30 - (20*(i+j)), (255, 255, 255), multiline=True, width=self.window.width/3)
+                
+                i += 1
+                j += len(text)//48
+                
+            arcade.draw_text(f"{self.actuelement_selectionne.get_prompt()}{self.text_console}", self.window.width*2/3,
+                            self.window.height/2 - 30 - (20 * (i+j)), (255, 255, 255), multiline=True, width=self.window.width/3)
+        
         # update les sprites
         self.animation_cooldown -= 1
         if self.animation_cooldown <= 0:
             self.update_sprites()
             self.animation_cooldown = 30
+            
+        # dessiner les noms
+        self.dessiner_noms()
         
+        # dessiner les cables
+        for cable in self.cables:
+            cable.dessiner()
+            
+        
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        
+        # gérer si la console est cliqué
+        if self.window.width*2/3 < x < self.window.width and self.window.height/2 > y > 0 and self.actuelement_selectionne is not None:
+            self.console_active = True
+        else:
+            self.console_active = False
+            # gérer si un routeur est cliqué
+            for routeur in self.routeurs:
+                if routeur.collides_with_point((x, y)):
+                    self.actuelement_selectionne = routeur
+                
+    
+    def on_key_press(self, symbol: int, modifiers: int):
+        
+        # quand une touche est appuyé en console
+        
+        if self.console_active:
+            if chr(symbol) in "abcdefghijklmnopqrstuvwxyz )":
+                if not self.maj_appuye:
+                    self.text_console += chr(symbol)
+                else:
+                    self.text_console += chr(symbol).upper()
+            
+            if chr(symbol) in ",;:!=":
+                if not self.maj_appuye:
+                    self.text_console += chr(symbol)
+                else:
+                    char = ""
+                    if chr(symbol) == ",":
+                        char = "?"
+                    elif chr(symbol) == ";":
+                        char = "."
+                    elif chr(symbol) == ":":
+                        char = "/"
+                    elif chr(symbol) == "!":
+                        char = "§"
+                    elif chr(symbol) == "=":
+                        char = "+"
+                        
+                    self.text_console += char
+            
+            
+            elif chr(symbol) in "1234567890":
+                if self.maj_appuye:
+                    self.text_console += chr(symbol)
+                else:
+                    char = ""
+                    if chr(symbol) == "1":
+                        char = "&"
+                    elif chr(symbol) == "2":
+                        char = "é"
+                    elif chr(symbol) == "3":
+                        char = "\""
+                    elif chr(symbol) == "4":
+                        char = "\'"
+                    elif chr(symbol) == "5":
+                        char = "("
+                    elif chr(symbol) == "6":
+                        char = "-"
+                    elif chr(symbol) == "7":
+                        char = "è"
+                    elif chr(symbol) == "8":
+                        char = "_"
+                    elif chr(symbol) == "9":
+                        char = "ç"
+                    elif chr(symbol) == "0":
+                        char = "à"
+                    self.text_console += char
+                        
+            
+            elif arcade.key.LSHIFT == symbol or arcade.key.RSHIFT == symbol:
+                self.maj_appuye = True
+            
+            elif arcade.key.LCTRL == symbol or arcade.key.RCTRL == symbol:
+                self.ctrl_appuye = True
+            
+            elif arcade.key.ENTER == symbol:
+                self.command_history.append(self.text_console)
+                self.actuelement_selectionne.executer(self.text_console)
+                
+                self.text_console = ""
+                self.index_historique = None
+            
+            elif arcade.key.UP == symbol:
+                
+                if len(self.command_history) > 0:
+                    # si debut de chargement de l'historique
+                    if self.index_historique is None:
+                        self.index_historique = len(self.command_history) - 1
+                    else:
+                        # si au bout de l'historique
+                        if self.index_historique <= 0:
+                            self.index_historique = len(self.command_history) - 1
+                        else:
+                            self.index_historique -= 1
+                            
+                    self.text_console = self.command_history[self.index_historique]
+                
+            elif arcade.key.DOWN == symbol:
+                if len(self.command_history) > 0:
+                    # si debut de chargement de l'historique
+                    if self.index_historique is None:
+                        self.index_historique = 0
+                    else:
+                        # si au bout de l'historique
+                        if self.index_historique >= len(self.command_history) - 1 :
+                            self.index_historique = 0
+                        else:
+                            self.index_historique += 1
+                            
+                    self.text_console = self.command_history[self.index_historique]
+            
+            elif arcade.key.BACKSPACE == symbol:
+                self.text_console = self.text_console[:-1]
+                self.index_historique = None
+        
+    def on_key_release(self, symbol: int, modifiers: int):
+        if self.console_active:
+            if arcade.key.LSHIFT == symbol or arcade.key.RSHIFT == symbol:
+                self.maj_appuye = False
+            
+            elif arcade.key.LCTRL == symbol or arcade.key.RCTRL == symbol:
+                self.ctrl_appuye = False
         
     
     def on_update(self, delta_time: float):
@@ -213,8 +398,17 @@ class Jeu(arcade.View):
     def update_sprites(self):
         """Fonction qui fait avancer les animations de tout les sprites"""
         
+        # update les sprites
         for routeur in self.routeurs:
             routeur.animer()
+    
+    
+    def dessiner_noms(self):
+        
+        for routeur in self.routeurs:
+            arcade.draw_text(routeur.nom, routeur.center_x, routeur.center_y + routeur.height/2 + 10, 
+                            (255, 0, 0), anchor_x="center", anchor_y="baseline")
+            
         
     
 
