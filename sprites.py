@@ -396,3 +396,11 @@ class Switch(arcade.Sprite):
         
         # si le sprite a deja ete ajouté a la game
         self.in_game = False
+
+
+class Paquet(arcade.Sprite):
+    
+    def __init__(self, destination):
+        super().__init__(self)
+        
+        self.destination = destination

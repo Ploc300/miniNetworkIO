@@ -176,6 +176,8 @@ class Jeu(arcade.View):
         self.index_historique = None
         self.maj_appuye = False
         self.ctrl_appuye = False
+        self.position_actuel_curseur = 0 # position actuel curseur dans la console
+        self.curseur_visible = True # si l curseur est visible ou pas (pout faire une animation)
         
         # cooldown entre chaque anim
         self.animation_cooldown = 30
@@ -239,7 +241,9 @@ class Jeu(arcade.View):
                 i += 1
                 j += len(text)//48
                 
-            arcade.draw_text(f"{self.actuelement_selectionne.get_prompt()}{self.text_console}", self.window.width*2/3,
+            text = f"{self.actuelement_selectionne.get_prompt()}{self.text_console[:self.position_actuel_curseur]}"
+            text += f"{'|' if self.curseur_visible else ' '}{self.text_console[self.position_actuel_curseur:]}"
+            arcade.draw_text(text, self.window.width*2/3,
                             self.window.height/2 - 30 - (20 * (i+j)), (255, 255, 255), multiline=True, width=self.window.width/3)
         
         # update les sprites
@@ -247,6 +251,7 @@ class Jeu(arcade.View):
         if self.animation_cooldown <= 0:
             self.update_sprites()
             self.animation_cooldown = 30
+            self.curseur_visible = not self.curseur_visible
             
         # dessiner les noms
         self.dessiner_noms()
@@ -279,6 +284,8 @@ class Jeu(arcade.View):
                     self.text_console += chr(symbol)
                 else:
                     self.text_console += chr(symbol).upper()
+                    
+                self.position_actuel_curseur += 1
             
             if chr(symbol) in ",;:!=":
                 if not self.maj_appuye:
@@ -297,6 +304,8 @@ class Jeu(arcade.View):
                         char = "+"
                         
                     self.text_console += char
+                    
+                self.position_actuel_curseur += 1
             
             
             elif chr(symbol) in "1234567890":
@@ -325,6 +334,8 @@ class Jeu(arcade.View):
                     elif chr(symbol) == "0":
                         char = "à"
                     self.text_console += char
+                    
+                self.position_actuel_curseur += 1
                         
             
             elif arcade.key.LSHIFT == symbol or arcade.key.RSHIFT == symbol:
@@ -339,6 +350,7 @@ class Jeu(arcade.View):
                 
                 self.text_console = ""
                 self.index_historique = None
+                self.position_actuel_curseur = 0
             
             elif arcade.key.UP == symbol:
                 
@@ -369,9 +381,19 @@ class Jeu(arcade.View):
                             
                     self.text_console = self.command_history[self.index_historique]
             
+            elif arcade.key.RIGHT == symbol:
+                if self.position_actuel_curseur < len(self.text_console):
+                    self.position_actuel_curseur += 1
+            
+            elif arcade.key.LEFT == symbol:
+                if self.position_actuel_curseur > 0:
+                    self.position_actuel_curseur -= 1
+            
             elif arcade.key.BACKSPACE == symbol:
-                self.text_console = self.text_console[:-1]
+                self.text_console = self.text_console[:self.position_actuel_curseur-1] + self.text_console[self.position_actuel_curseur:]
                 self.index_historique = None
+                if self.position_actuel_curseur > 0:
+                    self.position_actuel_curseur -= 1
         
     def on_key_release(self, symbol: int, modifiers: int):
         if self.console_active:
