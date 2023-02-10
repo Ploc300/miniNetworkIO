@@ -181,43 +181,31 @@ class Routeur(arcade.Sprite):
                         if contenu_commande[1].startswith("addr"):
                             if self.interfaces_actuel is not None:
                                 if len(contenu_commande) == 4:
-                                    # faire une verif de validité
-                                    ip_valide = True
-                                    masque_valide = True
-                                    # verifier l'ip
-                                    if len(contenu_commande[2].split(".")) == 4:
-                                        for p in contenu_commande[2].split("."):
-                                            if not 0 <= int(p) <= 255:
-                                                ip_valide = False
-                                    else:
-                                        ip_valide = False
-                                        self.contenu_console.append("L'ip n'est pas valide, exemple d'ip : 10.0.0.1")
-                                        
-                                    
-                                    if ip_valide:
-                                        # verifier le massque    
-                                        if len(contenu_commande[3].split(".")) == 4:
-                                            for p in contenu_commande[2].split("."):
-                                                if not 0 <= int(p) <= 255:
-                                                    masque_valide = False
-                                        else:
-                                            masque_valide = False
-                                            self.contenu_console.append("Le masque n'est pas valide, exemple d'ip : 255.0.0.0")
-                                    else:
-                                        self.contenu_console.append("Les nombres de l'ip doivent etre compris entre 0 et 255")
-                                    
-                                    if not masque_valide:
-                                        self.contenu_console.append("Les nombres du masque doivent etre compris entre 0 et 255")
-                                    
-                                    # si les 2 sont valides
-                                    if masque_valide and ip_valide:
+                                    # faire la verif de validité
+                                    if self.ip_valide(contenu_commande[2], contenu_commande[3]):
                                         self.interfaces_actuel.set_ip(contenu_commande[2], contenu_commande[3])
-                                        
+                                        self.table_routage.append([f"{contenu_commande[2]}/{contenu_commande[3]}", "-", self.interfaces_actuel.get_name()])
                                     
                                 else:
                                     self.contenu_console.append("Il faut préciser l'ip et le masque")
                             else:
                                 self.contenu_console.append("Aucune interface n'es selectionné")
+                        # si commande ip route
+                        elif contenu_commande[1].startswith("route"):
+                            if len(contenu_commande) == 5:
+                                # verifier l'ip
+                                if self.ip_valide(contenu_commande[2], contenu_commande[3]):
+                                    # si l'ip et le masque sont valides
+                                    # on verifie la passerelle
+                                    passerelle = self.passerelle_valide(contenu_commande[4])
+                                    if passerelle is not None:
+                                        self.table_routage.append([f"{contenu_commande[2]}/{contenu_commande[3]}", contenu_commande[4], passerelle[2]])
+                                    else:
+                                        self.contenu_console.append("La passerelle n'est pas valide")
+
+                                    
+                            else:
+                                self.contenu_console.append("Pas assez d'arguments (ip, masque et passerelle)")
                         else:
                             self.contenu_console.append("Argument invalide")
                     else:
@@ -225,12 +213,137 @@ class Routeur(arcade.Sprite):
                 else:
                     self.contenu_console.append("Il n'y a pas assez d'argument")
             
+            # si c'est une commande en do
+            elif contenu_commande[0].startswith("do"):
+                if self.config:
+                    if len(contenu_commande) > 1:
+                        if contenu_commande[1].startswith("sh"):
+                            if len(contenu_commande) > 2:
+                                if contenu_commande[2].startswith("ip"):
+                                    if len(contenu_commande) > 3:
+                                        if contenu_commande[3].startswith("int"):
+                                            for interface in self.interfaces:
+                                                self.contenu_console.append(f"{interface.get_name()}:{interface.get_ip()}/{interface.get_masque()}")
+                                        elif contenu_commande[3].startswith("route"):
+                                            for route in self.table_routage:
+                                                self.contenu_console.append("   ".join(route))
+                                        else:
+                                            self.contenu_console.append("Argument inconnu")
+                                    else:
+                                        self.contenu_console.append("Il n'y a pas assez d'argument")
+                                else:
+                                    self.contenu_console.append("Argument inconnu")
+                            else:
+                                self.contenu_console.append("Il n'y a pas assez d'argument")
+                        else:
+                            self.contenu_console.append("Argument inconnu")
+                    else:
+                        self.contenu_console.append("Il n'y a pas assez d'argument")
+                else:
+                    self.contenu_console.append("Il ne faut pas utiliser do en dehors du mode config")
+            
+            
+            elif contenu_commande[0].startswith("sh"):
+                if not self.config:
+                    if len(contenu_commande) > 1:
+                        if contenu_commande[1].startswith("ip"):
+                            if len(contenu_commande) > 2:
+                                if contenu_commande[2].startswith("int"):
+                                    for interface in self.interfaces:
+                                        self.contenu_console.append(f"{interface.get_name()}:{interface.get_ip()}/{interface.get_masque()}")
+                                elif contenu_commande[2].startswith("route"):
+                                    for route in self.table_routage:
+                                        self.contenu_console.append("   ".join(route))
+                                else:
+                                    self.contenu_console.append("Argument inconnu")
+                            else:
+                                self.contenu_console.append("Il n'y a pas assez d'argument")
+                        else:
+                            self.contenu_console.append("Argument inconnu")
+                    else:
+                        self.contenu_console.append("Il n'y a pas assez d'argument")
+                else:
+                    self.contenu_console.append("Il faut utiliser do devant les comande show en mode config")
+                    
+                    
             # si la commande n'est pas comprise
             else:
                 self.contenu_console.append("La commande n'a pas été comprise")
+    
+    def ip_valide(self, ip, masque):
+        ip_splitted = ip.split(".")
+        masque_splited = masque.split(".")
+        
+        ip_valide = True
+        masque_valide = True
+        # verifier l'ip
+        if len(ip_splitted) == 4:
+            for p in ip_splitted:
+                if not 0 <= int(p) <= 255:
+                    ip_valide = False
+        else:
+            ip_valide = False
+            self.contenu_console.append("L'ip n'est pas valide, exemple d'ip : 10.0.0.1")
+            
+        
+        if ip_valide:
+            # verifier le massque    
+            if len(masque_splited) == 4:
+                for p in masque_splited:
+                    if not 0 <= int(p) <= 255:
+                        masque_valide = False
+            else:
+                masque_valide = False
+                self.contenu_console.append("Le masque n'est pas valide, exemple d'ip : 255.0.0.0")
+        else:
+            self.contenu_console.append("Les nombres de l'ip doivent etre compris entre 0 et 255")
+        
+        if not masque_valide:
+            self.contenu_console.append("Les nombres du masque doivent etre compris entre 0 et 255")
+
+        masque_binaire = ["".join([bin(int(i)).replace("0b", "") for i in masque_splited])]
+        
+        que_des_zero = False
+        for char in masque_binaire:
+            if char == "0":
+                que_des_zero = True
+            if que_des_zero and char == "1":
+                masque_valide = False
+        
+        if not masque_valide:
+            self.contenu_console.append("Le maque n'est pas valide")
+        
+        # verif que le masque englobe tout le réseau
+        englobe_reseau = True
+        for i in range(len(ip_splitted)):
+            if int(ip_splitted[i]) & ~int(masque_splited[i]):
+                print(int(ip_splitted[i]) & ~int(masque_splited[i]))
+                englobe_reseau = False
+
+        if not englobe_reseau:
+            self.contenu_console.append("Le maque n'englobe pas tout le reseau")
+            
+        
+        return masque_valide and ip_valide and englobe_reseau
+
+    def passerelle_valide(self, passerelle):
+        # calcule des réseaux a coté
+        for res in self.table_routage:
+            if res[1] == "-":
+                temp_passerelle = [int(val) for val in passerelle.split(".")]
                 
+                ip, masque = res[0].split("/")
+                ip = [int(val) for val in ip.split(".")]
+                masque = [int(val) for val in masque.split(".")]
+                
+                # opération bit a bit de masquage
+                for i in range(len(temp_passerelle)):
+                    temp_passerelle[i] = temp_passerelle[i] & masque[i]
+                
+                if temp_passerelle == ip:
+                    return res
         
-        
+        return None
     
     def get_output_lines(self, nb:int, car_par_ligne:int, nb_start=-1):
         """Renvoi les nb ligne aec un maximum de nb_char_par_ligne

@@ -1,5 +1,4 @@
 import arcade
-import arcade.gui
 
 # créer un menu aussi
 
