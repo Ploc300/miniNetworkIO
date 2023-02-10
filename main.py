@@ -390,10 +390,13 @@ class Jeu(arcade.View):
                     self.position_actuel_curseur -= 1
             
             elif arcade.key.BACKSPACE == symbol:
-                self.text_console = self.text_console[:self.position_actuel_curseur-1] + self.text_console[self.position_actuel_curseur:]
-                self.index_historique = None
                 if self.position_actuel_curseur > 0:
+                    if self.position_actuel_curseur == 1:
+                        self.text_console = self.text_console[self.position_actuel_curseur:]
+                    else:
+                        self.text_console = self.text_console[:self.position_actuel_curseur - 1] + self.text_console[self.position_actuel_curseur:]
                     self.position_actuel_curseur -= 1
+                    self.index_historique = None
         
     def on_key_release(self, symbol: int, modifiers: int):
         if self.console_active:
