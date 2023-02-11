@@ -94,7 +94,7 @@ class Help(arcade.View):
             (window.width/2, window.height/8  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0))
         ]
 
-        
+        # midle_x, midle_y, width, height, text, text_color, size, anchor_x, anchor_y
         self.textes = [
             (window.width/4,   window.height/5*4, window.width/2.5, window.height/4, "Zone 1", (0, 0, 0), 20, "center", "baseline"),
             (window.width/4*3, window.height/5*4, window.width/2.5, window.height/4, "Zone 2", (0, 0, 0), 20, "center", "baseline"),
@@ -142,8 +142,12 @@ class Settings(arcade.View):
         
         # midle_x, midle_y, width, height, (r, g, b), nom, text, text_color
         self.buttons = [
-            (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0))
-        ]
+            (window.width/2, window.height/5  , 200, 50, (255, 0, 0), "bouton1", "Retour", (0, 0, 0)),
+            (window.width/2, window.height/5*2, 200, 50, (255, 0, 0), "bouton2", "Langue", (0, 0, 0)),
+            (window.width/2, window.height/5*3, 200, 50, (255, 0, 0), "bouton3", "Volume", (0, 0, 0)),
+            (window.width/2, window.height/5*4, 200, 50, (255, 0, 0), "bouton4", f"light_mode mode" , (0, 0, 0))
+            ]
+        
 
     def on_draw(self):
         self.clear()
@@ -152,6 +156,9 @@ class Settings(arcade.View):
         for x, y, w, h, color, name, text, text_color in self.buttons:
             arcade.draw_rectangle_filled(x, y, w, h, color)
             arcade.draw_text(text, x, y, text_color, anchor_x="center", anchor_y="baseline")
+
+
+
 
     def on_update(self, delta_time: float):
         pass
@@ -169,6 +176,16 @@ class Settings(arcade.View):
         match name:
             case "bouton1":
                 self.window.show_view(self.window.view_menu)
+            case "bouton2":
+                # changer la langue
+                print("changement de langue a implementer")
+            case "bouton3":
+                # changer le volume
+                print("changement de volume a implementer")
+            case "bouton4":
+                # changer dark/light mode
+                print("changement de dark/light mode a implementer")
+
 
 
 
