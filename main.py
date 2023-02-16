@@ -189,10 +189,11 @@ class Jeu(arcade.View):
         
         
         #self.switch
-        self.switchs = []
+        self.switchs = [Switch(300, 300, 50, 50, "S1", 1)]
         
         # nom machine 1, nom machine 2, type(0 = droit ou 1=croisé) ? , niveau
-        self.cables = [Cable(self.routeurs[0].get_interface("eth0"), self.routeurs[1].get_interface("eth0"), 1)]
+        self.cables = [Cable(self.routeurs[0].get_interface("eth0"), self.routeurs[1].get_interface("eth0"), 1),
+                       Cable(self.switchs[0].get_interface("int3"), self.routeurs[1].get_interface("eth0"), 1)]
         
         # lance le render des sprites
         self.ajouter_sprites()
@@ -417,7 +418,11 @@ class Jeu(arcade.View):
             if not routeur.in_game:
                 routeur.in_game = True
                 self.window.scene.add_sprite(routeur.nom, routeur)
-    
+        
+        for switch in self.switchs:
+            if not switch.in_game:
+                switch.in_game = True
+                self.window.scene.add_sprite(switch.nom, switch)
     
     def update_sprites(self):
         """Fonction qui fait avancer les animations de tout les sprites"""
@@ -425,12 +430,19 @@ class Jeu(arcade.View):
         # update les sprites
         for routeur in self.routeurs:
             routeur.animer()
+        
+        for switch in self.switchs:
+            switch.animer()
     
     
     def dessiner_noms(self):
         
         for routeur in self.routeurs:
             arcade.draw_text(routeur.nom, routeur.center_x, routeur.center_y + routeur.height/2 + 10, 
+                            (255, 0, 0), anchor_x="center", anchor_y="baseline")
+        
+        for switch in self.switchs:
+            arcade.draw_text(switch.nom, switch.center_x, switch.center_y + switch.height/2 + 10, 
                             (255, 0, 0), anchor_x="center", anchor_y="baseline")
             
         

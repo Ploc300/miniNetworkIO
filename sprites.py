@@ -6,6 +6,7 @@ with open("./conf.json", 'r') as f:
     
     content = json.load(f)
     STAT_ROUTEUR = content["conf"]["routeur"]
+    STAT_SWITCH = content["conf"]["switch"]
     
     STAT_CABLE = content["conf"]["cable"]
 
@@ -106,7 +107,7 @@ class Routeur(arcade.Sprite):
     
     def level_up(self, n=1):
         self.niveau += n
-        self.stats_actuel = STAT_ROUTEUR[self.niveau]
+        self.stats_actuel = self.stats[f"nv{self.niveau}"]
         
         self.interfaces = self.gen_interfaces()
 
@@ -264,8 +265,11 @@ class Routeur(arcade.Sprite):
                         self.contenu_console.append("Il n'y a pas assez d'argument")
                 else:
                     self.contenu_console.append("Il faut utiliser do devant les comande show en mode config")
-                    
-                    
+            
+            # si la commande commence par no
+            elif contenu_commande[0].startswith("no"):
+                pass
+                # faire pour no ip int et no ip route
             # si la commande n'est pas comprise
             else:
                 self.contenu_console.append("La commande n'a pas été comprise")
@@ -394,8 +398,97 @@ class Switch(arcade.Sprite):
         self.nom = nom
         self.niveau = niveau
         
+        # récuperer les stats du switch
+        self.stats = STAT_SWITCH
+        self.stats_actuel = STAT_SWITCH[f"nv{self.niveau}"]
+        
         # si le sprite a deja ete ajouté a la game
         self.in_game = False
+        
+        # textures du sprite
+        self.texture_actuel = 0
+        self.textures_sprite = TEXTURES_SPRITES["switch"]
+        self.texture = self.textures_sprite[self.texture_actuel]
+        
+        # contenu console
+        self.contenu_console = [f"Bienvenu dans la console de la machine {self.nom}"]
+        
+        # generer les interfaces
+        self.interfaces = self.gen_interfaces()
+    
+    
+    def gen_interfaces(self):
+        
+        interfaces = []
+        
+        if self.stats_actuel["interfaces"] == 12:
+            for i in range(4):
+                for j in range(3):
+                    # si i pair alors interfaces a dorite ou gauche et si i impaire, interfaces en haut ou en bas
+                    x = self.center_x - (i%2 * (self.width/2)) + ((i%2 & i//2) * self.width) + (- self.width/2 + j * self.width/2) * ((i+1)%2)
+                    y = self.center_y - ((i+1)%2 * (self.height/2)) + (((i+1)%2 & i//2) * self.height) + (- self.height/2 + j * self.height/2) * (i%2)
+                    interfaces.append(Interface(x, y, f"int{i*3+j}"))
+        
+        elif self.stats_actuel["interfaces"] == 16:
+            pass
+        
+        else:
+            raise ValueError("Ce nombre d'interfaces n'est pas pris en compte")
+        
+        return interfaces
+        
+    
+    def animer(self):
+        self.texture_actuel += 1
+        
+        if self.texture_actuel >= len(self.textures_sprite):
+            self.texture_actuel = 0
+        
+        self.texture = self.textures_sprite[self.texture_actuel]
+    
+    def get_output_lines(self, nb:int, car_par_ligne:int, nb_start=-1):
+        """Renvoi les nb ligne aec un maximum de nb_char_par_ligne
+        sur chaque ligne, par défaut le fetch commence par la fin"""
+        liste_fin = []
+        
+        i = 0
+        nb_lignes = 0
+        while nb_lignes < nb and i < len(self.contenu_console):
+            
+            nb_lignes += 1 + len(self.contenu_console[nb_start - i])//car_par_ligne
+            
+            if nb_lignes <= nb:
+                liste_fin.append(self.contenu_console[nb_start - i])
+            
+            i += 1
+        
+        return liste_fin[::-1]
+    
+    def level_up(self, n=1):
+        self.niveau += n
+        self.stats_actuel = self.stats[f"nv{self.niveau}"]
+        
+        self.interfaces = self.gen_interfaces()
+    
+    def executer(self, commande):
+        self.contenu_console.append(self.get_prompt()+commande)
+        self.contenu_console.append("La console du switch ne sert a rien pour l'instant")
+    
+    def get_interface(self, nom):
+        
+        for interface in self.interfaces:
+            if nom == interface.get_name():
+                return interface
+    
+    def get_prompt(self):
+        mode = ""
+        if self.config:
+            if self.interfaces_actuel is not None:
+                mode = "(config-if)"
+            else:
+                mode = "(config)"
+        
+        return f"{self.nom}{mode}#"
 
 
 class Paquet(arcade.Sprite):
