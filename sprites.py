@@ -93,14 +93,14 @@ class Routeur(arcade.Sprite):
         interfaces = []
         
         if nb_interfaces >= 2:
-            interfaces.append(Interface(self.center_x, self.center_y + (self.height/2), "eth0"))
-            interfaces.append(Interface(self.center_x + self.width, self.center_y + (self.height/2), "eth1"))
+            interfaces.append(Interface(self.center_x, self.center_y + self.height/2, "eth0"))
+            interfaces.append(Interface(self.center_x + self.width/2, self.center_y, "eth1"))
         
         if nb_interfaces >= 3:
-            interfaces.append(Interface(self.center_x + (self.width/2), self.center_y + self.height, "eth2"))
+            interfaces.append(Interface(self.center_x, self.center_y - self.height/2, "eth2"))
         
         if nb_interfaces >= 4:
-            interfaces.append(Interface(self.center_x + (self.width/2), self.center_y, "eth3"))
+            interfaces.append(Interface(self.center_x - self.width/2, self.center_y, "eth3"))
         
         return interfaces
             
@@ -425,12 +425,19 @@ class Switch(arcade.Sprite):
             for i in range(4):
                 for j in range(3):
                     # si i pair alors interfaces a dorite ou gauche et si i impaire, interfaces en haut ou en bas
-                    x = self.center_x - (i%2 * (self.width/2)) + ((i%2 & i//2) * self.width) + (- self.width/2 + j * self.width/2) * ((i+1)%2)
-                    y = self.center_y - ((i+1)%2 * (self.height/2)) + (((i+1)%2 & i//2) * self.height) + (- self.height/2 + j * self.height/2) * (i%2)
+                    # le 0.80 pou faire un decalage
+                    x = self.center_x - (i%2 * (self.width/2)) + ((i%2 & i//2) * self.width) + ((- self.width/2 + j * self.width/2) * ((i+1)%2))*0.8
+                    y = self.center_y - ((i+1)%2 * (self.height/2)) + (((i+1)%2 & i//2) * self.height) + ((- self.height/2 + j * self.height/2) * (i%2))*0.8
                     interfaces.append(Interface(x, y, f"int{i*3+j}"))
         
         elif self.stats_actuel["interfaces"] == 16:
-            pass
+            for i in range(4):
+                for j in range(4):
+                    # si i pair alors interfaces a dorite ou gauche et si i impaire, interfaces en haut ou en bas
+                    # le 0.80 pou faire un decalage
+                    x = self.center_x - (i%2 * (self.width/2)) + ((i%2 & i//2) * self.width) + ((- self.width/2 + j * self.width/3) * ((i+1)%2))*0.8
+                    y = self.center_y - ((i+1)%2 * (self.height/2)) + (((i+1)%2 & i//2) * self.height) + ((- self.height/2 + j * self.height/3) * (i%2))*0.8
+                    interfaces.append(Interface(x, y, f"int{i*4+j}"))
         
         else:
             raise ValueError("Ce nombre d'interfaces n'est pas pris en compte")
@@ -481,14 +488,7 @@ class Switch(arcade.Sprite):
                 return interface
     
     def get_prompt(self):
-        mode = ""
-        if self.config:
-            if self.interfaces_actuel is not None:
-                mode = "(config-if)"
-            else:
-                mode = "(config)"
-        
-        return f"{self.nom}{mode}#"
+        return f"{self.nom}#"
 
 
 class Paquet(arcade.Sprite):
