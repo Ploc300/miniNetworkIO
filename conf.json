@@ -25,6 +25,21 @@
             "nv3" : {
                 "packet_par_s" : 3
             }
+        },
+
+        "switch" : {
+            "nv1" : {
+                "interfaces" : 12,
+                "packet_par_s" : 1
+            },
+            "nv2" : {
+                "interfaces" : 12,
+                "packet_par_s" : 2
+            },
+            "nv3" : {
+                "interfaces" : 16,
+                "packet_par_s" : 3
+            }
         }
     }
 }

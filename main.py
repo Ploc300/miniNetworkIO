@@ -189,10 +189,11 @@ class Jeu(arcade.View):
         
         
         #self.switch
-        self.switchs = []
+        self.switchs = [Switch(300, 300, 50, 50, "S1", 3)]
         
         # nom machine 1, nom machine 2, type(0 = droit ou 1=croisé) ? , niveau
-        self.cables = [Cable(self.routeurs[0].get_interface("eth0"), self.routeurs[1].get_interface("eth0"), 1)]
+        self.cables = [Cable(self.routeurs[0].get_interface("eth0"), self.routeurs[1].get_interface("eth0"), 1),
+                       Cable(self.switchs[0].get_interface("int2"), self.routeurs[1].get_interface("eth1"), 1)]
         
         # lance le render des sprites
         self.ajouter_sprites()
@@ -218,11 +219,19 @@ class Jeu(arcade.View):
             arcade.draw_text(f"Vitesse : {self.actuelement_selectionne.stats_actuel['packet_par_s']}", self.window.width*5/6,
                             self.window.height*16/20, (0, 0, 0), anchor_x="center", anchor_y="baseline")
             
-            for i in range(len(self.actuelement_selectionne.interfaces)):
-                text = f"Ip {self.actuelement_selectionne.interfaces[i].get_name()} : {self.actuelement_selectionne.interfaces[i].get_ip()}/{self.actuelement_selectionne.interfaces[i].get_masque()}"
-                arcade.draw_text(text, self.window.width*5/6,
-                            self.window.height*15/20 - self.window.height*i/20 , (0, 0, 0), anchor_x="center", anchor_y="baseline")
-        
+            if type(self.actuelement_selectionne) == Routeur:
+                for i in range(len(self.actuelement_selectionne.interfaces)):
+                    text = f"Ip {self.actuelement_selectionne.interfaces[i].get_name()} : {self.actuelement_selectionne.interfaces[i].get_ip()}/{self.actuelement_selectionne.interfaces[i].get_masque()}"
+                    arcade.draw_text(text, self.window.width*5/6,
+                                self.window.height*15/20 - self.window.height*i/20 , (0, 0, 0), anchor_x="center", anchor_y="baseline")
+            elif type(self.actuelement_selectionne) == Switch:
+                interfaces = [i.get_name() for i in self.actuelement_selectionne.interfaces]
+                text = f"Liste des interfaces : {', '.join(interfaces)}"
+                
+                arcade.draw_text(text, self.window.width*2/3,
+                        self.window.height*15/20 , (0, 0, 0), multiline=True, width=self.window.width/3)
+                
+                
         # dessin carré console
         if self.actuelement_selectionne is not None:
             arcade.draw_lrtb_rectangle_filled(self.window.width*2/3, self.window.width, self.window.height/2, 0, (0, 0, 0))
@@ -272,6 +281,11 @@ class Jeu(arcade.View):
             for routeur in self.routeurs:
                 if routeur.collides_with_point((x, y)):
                     self.actuelement_selectionne = routeur
+            
+            # si un switch est cliqué
+            for switch in self.switchs:
+                if switch.collides_with_point((x, y)):
+                    self.actuelement_selectionne = switch
                 
     
     def on_key_press(self, symbol: int, modifiers: int):
@@ -390,10 +404,13 @@ class Jeu(arcade.View):
                     self.position_actuel_curseur -= 1
             
             elif arcade.key.BACKSPACE == symbol:
-                self.text_console = self.text_console[:self.position_actuel_curseur-1] + self.text_console[self.position_actuel_curseur:]
-                self.index_historique = None
                 if self.position_actuel_curseur > 0:
+                    if self.position_actuel_curseur == 1:
+                        self.text_console = self.text_console[self.position_actuel_curseur:]
+                    else:
+                        self.text_console = self.text_console[:self.position_actuel_curseur - 1] + self.text_console[self.position_actuel_curseur:]
                     self.position_actuel_curseur -= 1
+                    self.index_historique = None
         
     def on_key_release(self, symbol: int, modifiers: int):
         if self.console_active:
@@ -414,7 +431,11 @@ class Jeu(arcade.View):
             if not routeur.in_game:
                 routeur.in_game = True
                 self.window.scene.add_sprite(routeur.nom, routeur)
-    
+        
+        for switch in self.switchs:
+            if not switch.in_game:
+                switch.in_game = True
+                self.window.scene.add_sprite(switch.nom, switch)
     
     def update_sprites(self):
         """Fonction qui fait avancer les animations de tout les sprites"""
@@ -422,12 +443,19 @@ class Jeu(arcade.View):
         # update les sprites
         for routeur in self.routeurs:
             routeur.animer()
+        
+        for switch in self.switchs:
+            switch.animer()
     
     
     def dessiner_noms(self):
         
         for routeur in self.routeurs:
             arcade.draw_text(routeur.nom, routeur.center_x, routeur.center_y + routeur.height/2 + 10, 
+                            (255, 0, 0), anchor_x="center", anchor_y="baseline")
+        
+        for switch in self.switchs:
+            arcade.draw_text(switch.nom, switch.center_x, switch.center_y + switch.height/2 + 10, 
                             (255, 0, 0), anchor_x="center", anchor_y="baseline")
             
         
